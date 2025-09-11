@@ -18,20 +18,25 @@
             <th>Email</th>
             <th>Telefone</th>
             <th>Data de Nascimento</th>
+            <th>Ação</th>
         </tr>
         {% for pessoa in pessoas %}
-        <tr>
-            <td>{{ pessoa.nome }}</td>
-            <td>{{ pessoa.idade }}</td>
-            <td>{{ pessoa.salario }}</td>
-            <td>{{ pessoa.email }}</td>
-            <td>{{ pessoa.telefone }}</td>
-            <td>{{ pessoa.data_nascimento }}</td>
-        </tr>
-        {% empty %}
-        <tr>
-            <th colspan="4">Ainda não tem contatos cadastrados</th>
-        </tr>
+            <tr>
+                <td>{{ pessoa.nome }}</td>
+                <td>{{ pessoa.idade }}</td>
+                <td>{{ pessoa.salario }}</td>
+                <td>{{ pessoa.email }}</td>
+                <td>{{ pessoa.telefone }}</td>
+                <td>{{ pessoa.data_nascimento }}</td>
+                <td>
+                    <a href="{% url 'Contatos:atualiza-contato' pk=pessoa.id %}">Editar</a> | 
+                    <a href="{% url 'Contatos:deleta-contato' pk=pessoa.id %}">Excluir</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <th colspan="7">Ainda não tem contatos cadastrados</th>
+            </tr>
         {% endfor %}
     </table>
 </body>

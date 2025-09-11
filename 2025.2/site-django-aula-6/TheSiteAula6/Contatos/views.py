@@ -2,6 +2,8 @@ from django.shortcuts import render
 from Contatos.models import Pessoa
 from django.views.generic.base import View
 from django import forms
+from django.http import HttpResponseRedirect
+from django.urls import reverse_lazy
 
 def home_page_pagina(request):
     return render(request, 'Contatos/index.html')
@@ -14,18 +16,57 @@ class ContatoCreateView(View):
         contexto = { 'formulario': ContatoModel2Form, }
 
         return render(request, "Contatos/criaContato.html", contexto)
-
+    
     def post(self, request, *args, **kwargs):
         formulario = ContatoModel2Form(request.POST)
 
         if formulario.is_valid():
-            contato = formulario.save()
-            contato.save()
+            formulario.save()
 
-        # return HttpResponseRedirect(reverse_lazy("Contatos:lista-contatos"))
-        # OU
+            contexto = { 'formulario': ContatoModel2Form, 'mensagem': 'Contato criado com sucesso!', }
+            return HttpResponseRedirect(reverse_lazy("Contatos:lista-contatos"))
+        else:
+            contexto = { 'formulario': formulario, 'mensagem': 'Erro ao criar contato. Verifique os dados informados.', }
+            return render(request, "Contatos/criaContato.html", contexto)
+
+class ContatoUpdateView(View):
+    def get(self, request, pk, *args, **kwargs):
+        pessoa = Pessoa.objects.get(pk=pk)
+        formulario = ContatoModel2Form(instance=pessoa)
         contexto = { 'formulario': formulario, }
-        return render(request, "Contatos/criaContato.html", contexto)
+
+        return render(request, "Contatos/atualizaContato.html", contexto)
+    
+    def post(self, request, pk, *args, **kwargs):
+        pessoa = Pessoa.objects.get(pk=pk)
+        formulario = ContatoModel2Form(request.POST, instance=pessoa)
+
+        if formulario.is_valid():
+            #pessoa = formulario.save()
+            #pessoa.save()
+            formulario.save()
+
+            # contexto = { 'formulario': formulario, 'mensagem': 'Contato atualizado com sucesso!', }
+            return HttpResponseRedirect(reverse_lazy("Contatos:lista-contatos"))
+        else:
+            contexto = { 'formulario': formulario, 'mensagem': 'Erro ao atualizar contato. Verifique os dados informados.', }
+            return render(request, "Contatos/atualizaContato.html", contexto)
+
+class ContatoDeleteView(View):
+    def get(self, request, pk, *args, **kwargs):
+        pessoa = Pessoa.objects.get(pk=pk)
+        contexto = { 'pessoa': pessoa, }
+        # Caso queira mostrar os dados do formulário
+        # formulario = ContatoModel2Form(instance=pessoa)
+        # contexto = { 'formulario': formulario, }
+
+        return render(request, "Contatos/deletaContato.html", contexto)
+    
+    def post(self, request, pk, *args, **kwargs):
+        pessoa = Pessoa.objects.get(pk=pk)
+        pessoa.delete()
+
+        return HttpResponseRedirect(reverse_lazy("Contatos:lista-contatos"))
 
 class ContatoListView(View):
     def get(self, request, *args, **kwargs):
