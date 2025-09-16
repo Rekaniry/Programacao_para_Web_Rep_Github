@@ -4,12 +4,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cria Contato</title>
+    <title>{{ titulo_pagina }}</title>
     <link rel="stylesheet" href="{% static 'Contatos/css/estilo.css' %}">
 </head>
 <body>
     {% include 'Contatos/links.html' %}
-    <h1>Cria um contato</h1>
+    <h1>{{ titulo_janela }}</h1>
     <form action="" method="POST">
         <fieldset style="width: max-content;">
             <legend>Formulário de Cadastro</legend>
@@ -17,7 +17,7 @@
             <table class='formulario'>
                 {{ formulario.as_table }}
             </table>
-            <button type="submit">Criar contato</button>
+            <button type="submit">{{ botao }}</button>
         </fieldset>
     </form>
 </body>

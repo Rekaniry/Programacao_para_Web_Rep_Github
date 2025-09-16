@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from Contatos.models import Pessoa
+from Contatos.models import Pessoa, Endereco
 from django.views.generic.base import View
 from django import forms
 from django.http import HttpResponseRedirect
@@ -12,32 +12,77 @@ def home_page_contatos(request):
     return render(request, 'Contatos/home_page_contatos.html')
 
 class ContatoCreateView(View):
+    '''
+    Classe para criar um novo contato.
+    '''
     def get(self, request, *args, **kwargs):
-        contexto = { 'formulario': ContatoModel2Form, }
+        '''
+        Exibe o formulário para criar um novo contato.
+        '''
+        contexto = {
+            'formulario': ContatoModel2Form,
+            'enderecos': EnderecosModel2Form,
+            'titulo_janela': 'Cria Contato',
+            'titulo_pagina': 'Cria Contato',
+            'botao': 'Criar contato',
+        }
 
-        return render(request, "Contatos/criaContato.html", contexto)
+        return render(request, "Contatos/formContato.html", contexto)
     
     def post(self, request, *args, **kwargs):
+        '''
+        Cria um novo contato.
+        '''
         formulario = ContatoModel2Form(request.POST)
+        #enderecos = EnderecosModel2Form(request.POST)
 
-        if formulario.is_valid():
+        if formulario.is_valid(): # and enderecos.is_valid():
             formulario.save()
+            #enderecos.save()
 
-            contexto = { 'formulario': ContatoModel2Form, 'mensagem': 'Contato criado com sucesso!', }
+            contexto = {
+                'formulario': ContatoModel2Form,
+                #'enderecos': EnderecosModel2Form,
+                'mensagem': 'Contato criado com sucesso!',
+                'titulo_janela': 'Cria Contato',
+                'titulo_pagina': 'Cria Contato',
+                'botao': 'Criar contato',
+            }
             return HttpResponseRedirect(reverse_lazy("Contatos:lista-contatos"))
         else:
-            contexto = { 'formulario': formulario, 'mensagem': 'Erro ao criar contato. Verifique os dados informados.', }
-            return render(request, "Contatos/criaContato.html", contexto)
+            contexto = {
+                'formulario': formulario,
+                #'enderecos': enderecos,
+                'mensagem': 'Erro ao criar contato. Verifique os dados informados.',
+                'titulo_janela': 'Cria Contato',
+                'titulo_pagina': 'Cria Contato',
+                'botao': 'Criar contato',
+            }
+            return render(request, "Contatos/formContato.html", contexto)
 
 class ContatoUpdateView(View):
+    '''
+    Classe para atualizar um contato.
+    '''
     def get(self, request, pk, *args, **kwargs):
+        '''
+        Exibe o formulário para atualizar um contato.
+        '''
         pessoa = Pessoa.objects.get(pk=pk)
         formulario = ContatoModel2Form(instance=pessoa)
-        contexto = { 'formulario': formulario, }
+        contexto = {
+            'formulario': formulario,
+            'titulo_pagina': 'Atualiza Contato',
+            'titulo_janela': 'Atualiza Contato',
+            'botao': 'Atualizar',
+        }
 
-        return render(request, "Contatos/atualizaContato.html", contexto)
+        return render(request, "Contatos/formContato.html", contexto)
     
     def post(self, request, pk, *args, **kwargs):
+        '''
+        Atualiza o contato.
+        '''
         pessoa = Pessoa.objects.get(pk=pk)
         formulario = ContatoModel2Form(request.POST, instance=pessoa)
 
@@ -49,33 +94,64 @@ class ContatoUpdateView(View):
             # contexto = { 'formulario': formulario, 'mensagem': 'Contato atualizado com sucesso!', }
             return HttpResponseRedirect(reverse_lazy("Contatos:lista-contatos"))
         else:
-            contexto = { 'formulario': formulario, 'mensagem': 'Erro ao atualizar contato. Verifique os dados informados.', }
-            return render(request, "Contatos/atualizaContato.html", contexto)
+            contexto = {
+                'formulario': formulario,
+                'mensagem': 'Erro ao atualizar contato. Verifique os dados informados.',
+                'janela_titulo': 'Atualiza Contato',
+                'janela_pagina': 'Atualiza Contato',
+                'botao': 'Atualizar',
+            }
+            return render(request, "Contatos/formContato.html", contexto)
 
 class ContatoDeleteView(View):
+    '''
+    Classe para deletar um contato.
+    '''
     def get(self, request, pk, *args, **kwargs):
+        '''
+        Exibe uma página de confirmação para deletar o contato.
+        '''
         pessoa = Pessoa.objects.get(pk=pk)
-        contexto = { 'pessoa': pessoa, }
+        # Caso não queira mostrar os dados do formulário
+        # contexto = { 'pessoa': pessoa, }
         # Caso queira mostrar os dados do formulário
-        # formulario = ContatoModel2Form(instance=pessoa)
-        # contexto = { 'formulario': formulario, }
+        formulario = ContatoModel2Form(instance=pessoa)
+        contexto = {
+            'formulario': formulario,
+            'titulo_janela': 'Deleta Contato',
+            'titulo_pagina': 'Deleta Contato',
+            'botao': 'Excluir',
+        }
 
-        return render(request, "Contatos/deletaContato.html", contexto)
+        return render(request, "Contatos/formContato.html", contexto)
     
     def post(self, request, pk, *args, **kwargs):
+        '''
+        Apaga o contato
+        '''
         pessoa = Pessoa.objects.get(pk=pk)
         pessoa.delete()
 
         return HttpResponseRedirect(reverse_lazy("Contatos:lista-contatos"))
 
 class ContatoListView(View):
+    '''
+    Classe para listar contatos.
+    '''
     def get(self, request, *args, **kwargs):
         # Recupera todas as pessoas do banco de dados
         pessoas = Pessoa.objects.all().order_by('nome')
+        # Para cada pessoa listar os endereços associados
+        #for pessoa in pessoas:
+        #    enderecos = pessoa.enderecos.all()
+        #    pessoa.enderecos_list = enderecos
 
         # Contexto para o template
         # Valor da chave é o objeto com todas as pessoas = { Chave 'pessoas': Dicionário contexto }
-        contexto = { 'pessoas': pessoas, }
+        contexto = {
+            'pessoas': pessoas,
+            #'lista_enderecos': Endereco.objects.all(),
+        }
 
         return render(
             request,
@@ -137,3 +213,63 @@ class ContatoModel2Form(forms.ModelForm):
                 'required': 'A data de nascimento é obrigatória.',
             },
         }
+
+class EnderecosModel2Form(forms.ModelForm):
+    class Meta:
+        model = Endereco
+        fields = [
+            'logradouro',
+            'numero',
+            'complemento',
+            'bairro',
+            'cidade',
+            'estado',
+            'cep',
+        ]
+        labels = {
+            'logradouro': 'Logradouro',
+            'numero': 'Número',
+            'complemento': 'Complemento',
+            'bairro': 'Bairro',
+            'cidade': 'Cidade',
+            'estado': 'Estado (UF)',
+            'cep': 'CEP',
+        }
+        help_texts = {
+            'logradouro': 'Informe o logradouro do endereço.',
+            'numero': 'Informe o número do endereço.',
+            'complemento': 'Informe o complemento do endereço (opcional).',
+            'bairro': 'Informe o bairro do endereço.',
+            'cidade': 'Informe a cidade do endereço.',
+            'estado': 'Informe o estado (UF) do endereço.',
+            'cep': 'Informe o CEP do endereço.',
+        }
+        error_messages = {
+            'logradouro': {
+                'max_length': 'O logradouro é muito grande.',
+                'required': 'O logradouro é obrigatório.',
+            },
+            'numero': {
+                'max_length': 'O número é muito grande.',
+                'required': 'O número é obrigatório.',
+            },
+            'complemento': {
+                'max_length': 'O complemento é muito grande.',
+            },
+            'bairro': {
+                'max_length': 'O bairro é muito grande.',
+                'required': 'O bairro é obrigatório.',
+            },
+            'cidade': {
+                'max_length': 'A cidade é muito grande.',
+                'required': 	'A cidade é obrigatória.',
+            },
+            'estado': {
+                'max_length': 	'O estado (UF) é muito grande.',
+               	'required': 	'O estado (UF) é obrigatório.',
+            },
+           	'cep': {
+               	'max_length': 	'O CEP é muito grande.',
+               	'required': 	'O CEP é obrigatório.',
+            	},
+        	}
