@@ -34,25 +34,51 @@ class ContatoCreateView(View):
         Cria um novo contato.
         '''
         formulario = ContatoModel2Form(request.POST)
-        #enderecos = EnderecosModel2Form(request.POST)
+        enderecos = EnderecosModel2Form(request.POST)
 
-        if formulario.is_valid(): # and enderecos.is_valid():
+        if formulario.is_valid():
+            # Salva o formulário
             formulario.save()
-            #enderecos.save()
+            
+            # Obtém o valor do campo 'nome' do formulário de contato
+            endereco_referente_a_pessoa = formulario.cleaned_data['nome']
+            
+            # Verifica se há exatamente uma pessoa com o nome fornecido
+            pessoas = Pessoa.objects.filter(nome=endereco_referente_a_pessoa)
+            
+            if pessoas.count() != 1:
+                contexto = {
+                    'formulario': formulario,
+                    'enderecos': enderecos,
+                    'mensagem': 'Já existe mais de um contato com esse nome. Por favor, utilize nomes únicos para os contatos.',
+                    'titulo_janela': 'Cria Contato',
+                    'titulo_pagina': 'Cria Contato',
+                    'botao': 'Criar contato',
+                }
 
-            contexto = {
-                'formulario': ContatoModel2Form,
-                #'enderecos': EnderecosModel2Form,
-                'mensagem': 'Contato criado com sucesso!',
-                'titulo_janela': 'Cria Contato',
-                'titulo_pagina': 'Cria Contato',
-                'botao': 'Criar contato',
-            }
-            return HttpResponseRedirect(reverse_lazy("Contatos:lista-contatos"))
+                return render(request, "Contatos/formContato.html", contexto)
+
+            # Associa a instância de Pessoa ao formulário de endereços
+            enderecos.instance.pessoa = endereco_referente_a_pessoa
+            
+            if enderecos.is_valid():
+                # Salva o formulário de endereços
+                enderecos.save()
+                
+                contexto = {
+                    'formulario': ContatoModel2Form(),
+                    'enderecos': EnderecosModel2Form(),
+                    'mensagem': 'Contato criado com sucesso!',
+                    'titulo_janela': 'Cria Contato',
+                    'titulo_pagina': 'Cria Contato',
+                    'botao': 'Criar contato',
+                }
+    
+                return HttpResponseRedirect(reverse_lazy("Contatos:lista-contatos"))
         else:
             contexto = {
                 'formulario': formulario,
-                #'enderecos': enderecos,
+                'enderecos': enderecos,
                 'mensagem': 'Erro ao criar contato. Verifique os dados informados.',
                 'titulo_janela': 'Cria Contato',
                 'titulo_pagina': 'Cria Contato',
@@ -70,8 +96,10 @@ class ContatoUpdateView(View):
         '''
         pessoa = Pessoa.objects.get(pk=pk)
         formulario = ContatoModel2Form(instance=pessoa)
+        enderecos = EnderecosModel2Form(instance=pessoa.enderecos.first())
         contexto = {
             'formulario': formulario,
+            'enderecos': enderecos,
             'titulo_pagina': 'Atualiza Contato',
             'titulo_janela': 'Atualiza Contato',
             'botao': 'Atualizar',
@@ -85,13 +113,20 @@ class ContatoUpdateView(View):
         '''
         pessoa = Pessoa.objects.get(pk=pk)
         formulario = ContatoModel2Form(request.POST, instance=pessoa)
+        enderecos = EnderecosModel2Form(request.POST, instance=pessoa.enderecos.first())
 
-        if formulario.is_valid():
-            #pessoa = formulario.save()
-            #pessoa.save()
+        if formulario.is_valid() and enderecos.is_valid():
             formulario.save()
 
-            # contexto = { 'formulario': formulario, 'mensagem': 'Contato atualizado com sucesso!', }
+            endereco_referente_a_pessoa = formulario.cleaned_data['nome']
+            
+            pessoas = Pessoa.objects.filter(nome=endereco_referente_a_pessoa)
+
+            enderecos.instance.pessoa = pessoa
+
+            if enderecos.is_valid():
+                enderecos.save()
+
             return HttpResponseRedirect(reverse_lazy("Contatos:lista-contatos"))
         else:
             contexto = {
@@ -116,8 +151,10 @@ class ContatoDeleteView(View):
         # contexto = { 'pessoa': pessoa, }
         # Caso queira mostrar os dados do formulário
         formulario = ContatoModel2Form(instance=pessoa)
+        enderecos = EnderecosModel2Form(instance=pessoa.enderecos.first())
         contexto = {
             'formulario': formulario,
+            'enderecos': enderecos,
             'titulo_janela': 'Deleta Contato',
             'titulo_pagina': 'Deleta Contato',
             'botao': 'Excluir',
@@ -139,18 +176,17 @@ class ContatoListView(View):
     Classe para listar contatos.
     '''
     def get(self, request, *args, **kwargs):
-        # Recupera todas as pessoas do banco de dados
-        pessoas = Pessoa.objects.all().order_by('nome')
-        # Para cada pessoa listar os endereços associados
-        #for pessoa in pessoas:
-        #    enderecos = pessoa.enderecos.all()
-        #    pessoa.enderecos_list = enderecos
+        # Recupera todas as pessoas com endereços pré-carregados
+        pessoas = Pessoa.objects.all().order_by('nome').prefetch_related('enderecos')
+        
+        # Cria o atributo dinâmico (não recomendado, mas funcional)
+        for pessoa in pessoas:
+            pessoa.enderecos_list = pessoa.enderecos.all()
 
         # Contexto para o template
         # Valor da chave é o objeto com todas as pessoas = { Chave 'pessoas': Dicionário contexto }
         contexto = {
             'pessoas': pessoas,
-            #'lista_enderecos': Endereco.objects.all(),
         }
 
         return render(
