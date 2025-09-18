@@ -5,9 +5,6 @@ from django import forms
 from django.http import HttpResponseRedirect
 from django.urls import reverse_lazy
 
-def home_page_pagina(request):
-    return render(request, 'Contatos/index.html')
-
 def home_page_contatos(request):
     return render(request, 'Contatos/home_page_contatos.html')
 
