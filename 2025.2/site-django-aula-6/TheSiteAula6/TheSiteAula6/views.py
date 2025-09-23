@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.shortcuts import redirect
 from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.decorators import login_required
 
 def home_page_pagina(request):
     '''
@@ -32,3 +33,18 @@ def registro(request):
     context = {'form': formulario, }
     
     return render(request, 'seguranca/registro.html', context)
+
+@login_required
+def paginaSecreta(request):
+    '''
+    Renderiza uma página secreta que querer autenticação.
+    '''
+
+    return render(request, 'privado/paginaSecreta.html')
+
+def logout(request):
+    '''
+    Renderiza a página de logout.
+    '''
+
+    return render(request, 'seguranca/logout.html')

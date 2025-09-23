@@ -13,8 +13,12 @@
     <div>
         <a href="/">Home</a> |
         <a href="{% url 'home-sec' %}"> Página inicial de segurança</a>
-        {% if not user.is_authenticated %}
+        {% if user.is_authenticated %}
+            | <a href="{% url 'meulogout' %}">Logout</a>
+            | <a href="{% url 'password_change_form' %}">Trocar Senha</a>
+        {% else %}
             | <a href="{% url 'registro' %}">Registra</a>
+            | <a href="{% url 'login' %}?next={% url 'paginaSecreta' %}">Login</a>
         {% endif %}
         | Você é {% firstof user.username "visitante" %}
     </div>
