@@ -1,0 +1,20 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exemplo de Forms</title>
+    <link rel="stylesheet" href="{% static 'TheSiteAula6/css/estilo.css' %}">
+</head>
+<body>
+    <h1>Formuário de Exemplo</h1>
+    <form method="post">
+        {% csrf_token %}
+        <table class="formulario" border="1">
+            {{ form.as_table }}
+        </table>
+        <button type="submit">Enviar</button>
+    </form>
+</body>
+</html>

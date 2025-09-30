@@ -29,6 +29,12 @@ urlpatterns = [
         "Contatos/", 
         include('Contatos.urls')
     ),
+
+    path(
+        "exemplo_form/", 
+        views.exemplo_form, 
+        name='formulario'
+    ),
     
     path(
         "seguranca/", 
